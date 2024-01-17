@@ -1,0 +1,72 @@
+version: "3"
+
+services:
+  # Database
+  db:
+    image: mysql:5.7
+    container_name: ds-wordpress-db
+    tty: true
+    ports:
+      - "3306:3306"
+    volumes:
+      - "./var/libclea/mysql/:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpressuser
+      MYSQL_PASSWORD: wordpresspassword
+    networks:
+      - wpsite
+
+  # Wordpress (Primer sitio)
+  wordpress1:
+    image: wordpress:latest
+    container_name: ds-wordpress1
+    ports:
+      - "8000:80"
+    volumes:
+      - "./var/www/html/wordpress1:/var/www/html"
+    environment:
+      WORDPRESS_DB_USER: wordpressuser
+      WORDPRESS_DB_PASSWORD: wordpresspassword
+      WORDPRESS_DB_NAME: wordpress1db
+      WORDPRESS_DB_HOST: ds-wordpress-db
+    depends_on:
+      - db
+    networks:
+      - wpsite
+
+  # Wordpress (Segundo sitio)
+  wordpress2:
+    image: wordpress:latest
+    container_name: ds-wordpress2
+    ports:
+      - "8001:80"
+    volumes:
+      - "./var/www/html/wordpress2:/var/www/html"
+    environment:
+      WORDPRESS_DB_USER: wordpressuser
+      WORDPRESS_DB_PASSWORD: wordpresspassword
+      WORDPRESS_DB_NAME: wordpress2db
+      WORDPRESS_DB_HOST: ds-wordpress-db
+    depends_on:
+      - db
+    networks:
+      - wpsite
+
+  # phpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ds-phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: ds-wordpress-db
+      MYSQL_ROOT_PASSWORD: password
+    depends_on:
+      - db
+    networks:
+      - wpsite
+
+networks:
+  wpsite:
